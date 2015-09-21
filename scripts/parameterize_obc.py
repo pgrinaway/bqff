@@ -114,7 +114,7 @@ def _param_list_to_dict(parameter_list, list_of_param_names):
     return parameter_dict
 
 
-def obc_model_likelihood(parameters, model=None, list_of_param_names=None):
+def obc_model_posterior(parameters, model=None, list_of_param_names=None):
     """
     This is a function that is callable by GPyOpt. Specifically, it
     takes in a list of parameters (alphabetical order--GPyOpt uses lists instead of dicts)
@@ -146,7 +146,7 @@ def gpy_f_factory(model, list_of_param_names):
     returns a function callable by GPyOpt
     """
     def gpy_f(*parameters):
-        return obc_model_likelihood(*parameters, model=model, list_of_param_names=list_of_param_names)
+        return obc_model_posterior(*parameters, model=model, list_of_param_names=list_of_param_names)
     return gpy_f
 
 if __name__ == "__main__":
@@ -197,9 +197,14 @@ if __name__ == "__main__":
     bounds = _get_parameter_bounds(parameter_names)
 
     #generate the GPyOpt callable
-    likelihood = gpy_f_factory(model, parameter_names)
+    posterior = gpy_f_factory(model, parameter_names)
 
     #get GPyOpt started
-    gpyopt = GPyOpt.methods.BayesianOptimization(likelihood, bounds, X=initial_parameter_array)
+    #initial_parameter_arrays = [initial_parameter_array + 0.01* np.random.rand(len(bounds)) for _ in range(10)]
+    #initial_func_vals = np.hstack([posterior(params) for params in initial_parameter_arrays])
+
+    BO = GPyOpt.methods.BayesianOptimization
+    gpyopt = BO(posterior, bounds,
+                numdata_inital_design=100) # [sic]
 
     gpyopt.run_optimization(max_iter)

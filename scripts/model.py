@@ -36,7 +36,7 @@ class GBFFmodel(object):
         return lnprior
 
 
-    def ln_likelihood(self, parameters):
+    def ln_likelihood(self, parameters, verbose=True):
         """
         This calculates the log-likelihood of the given parameters.
 
@@ -61,8 +61,16 @@ class GBFFmodel(object):
             dg_exp = self._database[cid]['expt']
             ddg_expt = self._database[cid]['d_expt']
             normal_sigma = parameters['model_sigma']**2 + ddg_expt **2
-            print('The calculated dG for %s is %s, and the experimental is %f' % (self._database[cid]['iupac'], str(dg_gbsa), dg_exp))
+
+            if verbose=True:
+                #print('The calculated dG for %s is %s, and the experimental is %f' % (self._database[cid]['iupac'], str(dg_gbsa), dg_exp))
+                print(self._database[cid]['iupac'])
+                try:
+                    print('\tCalculated dG: {0:.3f}\n\tExperimental dG: {1:.3f}'.format(dg_gbsa, dg_exp))
+                except:
+                    print('dg_gbsa',dg_gbsa,type(dg_gbsa))
+                    print('dg_exp',dg_exp,type(dg_exp))
+                print('')
             ln_like += stats.distributions.norm.logpdf(dg_gbsa, dg_exp, normal_sigma)
 
         return ln_like
-
