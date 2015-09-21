@@ -1,0 +1,4 @@
+database_file: /Users/grinawap/PycharmProjects/baqff/baqff/data/database_obc_hct.pickle
+parameter_file: /Users/grinawap/PycharmProjects/baqff/baqff/data/gbsa-amber-mbondi2.parameters
+max_iter: 20
+n_molecules: 3
