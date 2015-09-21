@@ -200,6 +200,10 @@ if __name__ == "__main__":
     likelihood = gpy_f_factory(model, parameter_names)
 
     #get GPyOpt started
-    gpyopt = GPyOpt.methods.BayesianOptimization(likelihood, bounds, X=initial_parameter_array)
+    initial_likelihood = likelihood(initial_parameter_array)
+
+    gpyopt = GPyOpt.methods.BayesianOptimization(likelihood, bounds,
+        X=initial_parameter_array, Y=initial_likelihood)
+
 
     gpyopt.run_optimization(max_iter)
