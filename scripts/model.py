@@ -131,4 +131,4 @@ class GBFFmodel(object):
 
     def objective_func(self,param_vector,verbose=False):
         parameter_dict = self._parse_params(param_vector)
-        return self.ln_posterior(param_vector,verbose)
+        return self.ln_posterior(parameter_dict,verbose)
