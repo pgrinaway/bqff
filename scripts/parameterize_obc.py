@@ -15,36 +15,33 @@ import numpy as np
 import yaml
 import pickle
 
-
-
-
-def _get_parameter_bounds(list_of_parameter_names):
-    """
-    Gets a list of parameter bounds (alphabetical) from the parameter names
-
-    Arguments
-    ---------
-    list_of_parameter_names : list of string
-       names of parameters
-
-    Returns
-    -------
-    bounds : list of tuples
-        Bounds for the parameters of interest
-    """
-    list_of_parameter_names.sort()
-    bounds = []
-    for name in list_of_parameter_names:
-        parmtype = name.split('_')[1]
-        if parmtype == 'radius':
-            bounds.append((0.5, 3.0))
-        elif parmtype == 'scalingFactor':
-            bounds.append((-0.8, 1.5))
-        elif parmtype == 'sigma':
-            bounds.append((0, 1000))
-        else:
-            raise ValueError
-    return bounds
+# def _get_parameter_bounds(list_of_parameter_names):
+#     """
+#     Gets a list of parameter bounds (alphabetical) from the parameter names
+#
+#     Arguments
+#     ---------
+#     list_of_parameter_names : list of string
+#        names of parameters
+#
+#     Returns
+#     -------
+#     bounds : list of tuples
+#         Bounds for the parameters of interest
+#     """
+#     list_of_parameter_names.sort()
+#     bounds = []
+#     for name in list_of_parameter_names:
+#         parmtype = name.split('_')[1]
+#         if parmtype == 'radius':
+#             bounds.append((0.5, 3.0))
+#         elif parmtype == 'scalingFactor':
+#             bounds.append((-0.8, 1.5))
+#         elif parmtype == 'sigma':
+#             bounds.append((0, 1000))
+#         else:
+#             raise ValueError
+#     return bounds
 
 def read_gbsa_parameters(filename):
         """
@@ -88,32 +85,32 @@ def read_gbsa_parameters(filename):
                 parameters['%s_%s' % (atomtype,'gamma')] = float(gamma)
         return parameters
 
-def _param_list_to_dict(parameter_list, list_of_param_names):
-    """
-    Convert the list of parameters to a dictionary for the model
+# def _param_list_to_dict(parameter_list, list_of_param_names):
+#     """
+#     Convert the list of parameters to a dictionary for the model
+#
+#     Arguments
+#     ---------
+#     parameter_list : list of floats
+#         The current set of parameters that GPyOpt wants to try
+#     list_of_param_names : list of string
+#         The list of the names of the parameters.
+#
+#     Returns
+#     -------
+#     parameter_dict_list : dict
+#         A dictionary of the format {parameter_name : parameter_value}
+#
+#     """
+#
+#     list_of_param_names.sort()
+#     parameter_dict = {}
+#     for (i, val) in enumerate(parameter_list):
+#         parameter_dict[list_of_param_names[i]] = val
+#     return parameter_dict
 
-    Arguments
-    ---------
-    parameter_list : list of floats
-        The current set of parameters that GPyOpt wants to try
-    list_of_param_names : list of string
-        The list of the names of the parameters.
 
-    Returns
-    -------
-    parameter_dict_list : dict
-        A dictionary of the format {parameter_name : parameter_value}
-
-    """
-
-    list_of_param_names.sort()
-    parameter_dict = {}
-    for (i, val) in enumerate(parameter_list):
-        parameter_dict[list_of_param_names[i]] = val
-    return parameter_dict
-
-
-def obc_model_posterior(parameters, model=None, list_of_param_names=None):
+def obc_model_posterior(parameters, model=None):
     """
     This is a function that is callable by GPyOpt. Specifically, it
     takes in a list of parameters (alphabetical order--GPyOpt uses lists instead of dicts)
@@ -133,28 +130,19 @@ def obc_model_posterior(parameters, model=None, list_of_param_names=None):
     """
     ln_unnormalized = []
     for parameter_set in parameters:
-        parameter_dict = _param_list_to_dict(parameter_set, list_of_param_names)
-        lnprior = model.ln_prior(parameter_dict)
-        lnlikelihood = model.ln_likelihood(parameter_dict)
-        ln_post = lnprior+lnlikelihood
-        ln_unnormalized.append([ln_post])
-
-        print("The log prior is %f" % lnprior)
-        print("The log likelihood is %f" % lnlikelihood)
-        print("The log unnormalized posterior is %f" % (ln_post))
-
+        ln_unnormalized.append([model.objective_func(parameter_set)])
     return np.array(ln_unnormalized)
 
-def gpy_f_factory(model, list_of_param_names):
+def gpy_f_factory(model):
     """
-    returns a function callable by GPyOpt. 
+    returns a function callable by GPyOpt.
 
     Since GPyOpt.methods.BayesianOptimization seeks the minimum, we flip the sign
     of the posterior.
 
     """
     def gpy_f(*parameters):
-        return -obc_model_posterior(*parameters, model=model, list_of_param_names=list_of_param_names)
+        return -obc_model_posterior(*parameters, model=model)
     return gpy_f
 
 if __name__ == "__main__":
@@ -203,10 +191,10 @@ if __name__ == "__main__":
     model = model.GBFFmodel(database, parameters)
 
     #generate the bounds for each variable
-    bounds = _get_parameter_bounds(parameter_names)
+    bounds = model._parameter_bounds
 
     #generate the GPyOpt callable
-    posterior = gpy_f_factory(model, parameter_names)
+    posterior = gpy_f_factory(model)
 
     #get GPyOpt started
     #initial_parameter_arrays = [initial_parameter_array + 0.01* np.random.rand(len(bounds)) for _ in range(10)]
@@ -218,7 +206,6 @@ if __name__ == "__main__":
     BO = GPyOpt.methods.BayesianOptimization
     gpyopt = BO(posterior, bounds,
                 numdata_initial_design=100, kernel=kernel)
-
 
     gpyopt.run_optimization(max_iter)
 

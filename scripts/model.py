@@ -18,7 +18,8 @@ class GBFFmodel(object):
     def __init__(self, prepared_database, initial_parameter_dict):
         self._database = prepared_database
         self._initial_parameters = initial_parameter_dict
-        self._parameter_names = initial_parameter_dict.keys().sort()
+        sorted_names = sorted(initial_parameter_dict.keys())
+        self._parameter_names = sorted_names
         self._parameter_bounds = self._get_parameter_bounds()
         self._num_params = len(self._parameter_names)
 
@@ -78,7 +79,16 @@ class GBFFmodel(object):
         return ln_like
 
     def ln_posterior(self,parameter_dict,verbose=True):
-        return self.ln_prior(parameter_dict) + self.ln_likelihood(parameter_dict,verbose)
+        ln_prior = self.ln_prior(parameter_dict)
+        ln_likelihood = self.ln_likelihood(parameter_dict,verbose)
+        ln_posterior = ln_prior+ln_likelihood
+
+        if verbose:
+            print("The log prior is {0:.3f}".format(ln_prior))
+            print("The log likelihood is {0:.3f}".format(ln_likelihood))
+            print("The log unnormalized posterior is {0:.3f}".format(ln_posterior))
+
+        return ln_posterior
 
     def _get_parameter_bounds(self):
         """
