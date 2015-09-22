@@ -110,7 +110,7 @@ def read_gbsa_parameters(filename):
 #     return parameter_dict
 
 
-def obc_model_posterior(parameters, model=None):
+def obc_model_posterior(parameters, model=None, verbose=True):
     """
     This is a function that is callable by GPyOpt. Specifically, it
     takes in a list of parameters (alphabetical order--GPyOpt uses lists instead of dicts)
@@ -130,7 +130,7 @@ def obc_model_posterior(parameters, model=None):
     """
     ln_unnormalized = []
     for parameter_set in parameters:
-        ln_unnormalized.append([model.objective_func(parameter_set)])
+        ln_unnormalized.append([model.objective_func(parameter_set,verbose)])
     return np.array(ln_unnormalized)
 
 def gpy_f_factory(model):
