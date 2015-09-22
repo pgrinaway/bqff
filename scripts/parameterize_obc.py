@@ -37,7 +37,7 @@ def _get_parameter_bounds(list_of_parameter_names):
     for name in list_of_parameter_names:
         parmtype = name.split('_')[1]
         if parmtype == 'radius':
-            bounds.append((0.5, 2.5))
+            bounds.append((0.5, 3.0))
         elif parmtype == 'scalingFactor':
             bounds.append((-0.8, 1.5))
         elif parmtype == 'sigma':
@@ -75,7 +75,6 @@ def read_gbsa_parameters(filename):
 
             # Parse parameters
             elements = line.split()
-            print("the length of the elements is %d" % len(elements))
             if len(elements) == 3:
                 [atomtype, radius, scalingFactor] = elements
                 parameters['%s_%s' % (atomtype,'radius')] = float(radius)
@@ -135,8 +134,11 @@ def obc_model_posterior(parameters, model=None, list_of_param_names=None):
     ln_unnormalized = []
     for parameter_set in parameters:
         parameter_dict = _param_list_to_dict(parameter_set, list_of_param_names)
-        lnprior = model.ln_prior(parameter_dict)
-        lnlikelihood = model.ln_likelihood(parameter_dict)
+        lnprior = -1.0*model.ln_prior(parameter_dict)
+        lnlikelihood = -1.0*model.ln_likelihood(parameter_dict)
+        print("The log prior is %f" % lnprior)
+        print("The log likelihood is %f" % lnlikelihood)
+        print("The log unnormalized posterior is %f" % (lnlikelihood+lnprior))
         ln_unnormalized.append([lnprior+lnlikelihood])
     print(ln_unnormalized)
     return np.array(ln_unnormalized)
@@ -203,8 +205,19 @@ if __name__ == "__main__":
     #initial_parameter_arrays = [initial_parameter_array + 0.01* np.random.rand(len(bounds)) for _ in range(10)]
     #initial_func_vals = np.hstack([posterior(params) for params in initial_parameter_arrays])
 
+    #get a kernel
+    kernel = GPy.kern.RBF(25, lengthscale=0.001)
+
     BO = GPyOpt.methods.BayesianOptimization
     gpyopt = BO(posterior, bounds,
-                numdata_inital_design=100) # [sic]
+                numdata_inital_design=100, kernel=kernel) # [sic]
 
     gpyopt.run_optimization(max_iter)
+
+    result = gpyopt.x_opt
+
+    result_dict = _param_list_to_dict(result, parameter_names)
+
+    print(result_dict)
+
+    gpyopt.save_report()

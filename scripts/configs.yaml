@@ -1,4 +1,4 @@
 database_file: "../data/database_obc_hct.pickle"
 parameter_file: "../data/gbsa-amber-mbondi2.parameters"
-max_iter: 20
-n_molecules: 3
+max_iter: 1000
+n_molecules: 1

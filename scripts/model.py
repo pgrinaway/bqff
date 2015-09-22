@@ -30,7 +30,7 @@ class GBFFmodel(object):
             if parmtype == 'radius':
                 lnprior += stats.distributions.uniform.logpdf(value, 0.5, 2.5)
             elif parmtype == 'scalingFactor':
-                lnprior += stats.distributions.uniform.logpdf(value, -0.8, 1.5)
+                lnprior += stats.distributions.uniform.logpdf(value, -0.8, 2.3)
             elif parmtype == 'sigma':
                 lnprior += stats.distributions.invgamma.logpdf(value,1.0,1.0)
         return lnprior
