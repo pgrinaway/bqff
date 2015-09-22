@@ -62,7 +62,7 @@ class GBFFmodel(object):
             ddg_expt = self._database[cid]['d_expt']
             normal_sigma = parameters['model_sigma']**2 + ddg_expt **2
 
-            if verbose=True:
+            if verbose==True:
                 #print('The calculated dG for %s is %s, and the experimental is %f' % (self._database[cid]['iupac'], str(dg_gbsa), dg_exp))
                 print(self._database[cid]['iupac'])
                 try:
