@@ -15,10 +15,12 @@ class GBFFmodel(object):
         A prepared FreeSolv database
     """
 
-    def __init__(self, prepared_database, initial_parameters):
+    def __init__(self, prepared_database, initial_parameter_dict):
         self._database = prepared_database
-        self._initial_parameters = initial_parameters
-
+        self._initial_parameters = initial_parameter_dict
+        self._parameter_names = initial_parameter_dict.keys().sort()
+        self._parameter_bounds = self._get_parameter_bounds()
+        self._num_params = len(self._parameter_names)
 
     def ln_prior(self, parameters):
         """
@@ -74,3 +76,59 @@ class GBFFmodel(object):
             ln_like += stats.distributions.norm.logpdf(dg_gbsa, dg_exp, normal_sigma)
 
         return ln_like
+
+    def ln_posterior(self,parameter_dict,verbose=True):
+        return self.ln_prior(parameter_dict) + self.ln_likelihood(parameter_dict,verbose)
+
+    def _get_parameter_bounds(self):
+        """
+        Gets a list of parameter bounds (alphabetical) from the parameter names
+
+        Arguments
+        ---------
+        list_of_parameter_names : list of string
+           names of parameters
+
+        Returns
+        -------
+        bounds : list of tuples
+            Bounds for the parameters of interest
+        """
+
+        bounds = []
+        for name in self._parameter_names:
+            parmtype = name.split('_')[1]
+            if parmtype == 'radius':
+                bounds.append((0.5, 3.0))
+            elif parmtype == 'scalingFactor':
+                bounds.append((-0.8, 1.5))
+            elif parmtype == 'sigma':
+                bounds.append((0, 1000))
+            else:
+                raise ValueError
+        return bounds
+
+    def _parse_params(self,param_vector):
+        """
+        Convert the param_vector to a dictionary for the model
+
+        Arguments
+        ---------
+        param_vector : array-like of floats, shape=(n,) or (n,1) where n=self._num_params
+
+        Returns
+        -------
+        parameter_dict_list : dict
+            A dictionary of the format {parameter_name : parameter_value}
+
+        """
+        assert(len(param_vector)==self._num_params)
+        parameter_dict = dict()
+
+        for (i, val) in enumerate(param_vector):
+            parameter_dict[self._parameter_names[i]] = val
+        return parameter_dict
+
+    def objective_func(self,param_vector,verbose=False):
+        parameter_dict = self._parse_params(param_vector)
+        return self.ln_posterior(param_vector,verbose)
