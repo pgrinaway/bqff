@@ -129,15 +129,16 @@ def obc_model_posterior(parameters, model=None, list_of_param_names=None):
 
     Returns
     -------
-    ln_like : float
-        The log likelihood of the model
+    ln_post : float
+        The log posterior of the model
     """
     ln_unnormalized = []
     for parameter_set in parameters:
         parameter_dict = _param_list_to_dict(parameter_set, list_of_param_names)
         lnprior = model.ln_prior(parameter_dict)
         lnlikelihood = model.ln_likelihood(parameter_dict)
-        ln_unnormalized.append([lnprior+lnlikelihood])
+        ln_post = lnprior+lnlikelihood
+        ln_unnormalized.append([ln_post])
     print(ln_unnormalized)
     return np.array(ln_unnormalized)
 
@@ -186,6 +187,7 @@ if __name__ == "__main__":
     subset_size = n_molecules
     cid_list = database.keys()
     max_num = len(cid_list)
+    np.random.seed(0)
     mol_indices = np.random.choice(max_num, subset_size)
     mols_to_use = [cid_list[k] for k in mol_indices]
     database = dict((k, database[k]) for k in mols_to_use)
@@ -205,6 +207,6 @@ if __name__ == "__main__":
 
     BO = GPyOpt.methods.BayesianOptimization
     gpyopt = BO(posterior, bounds,
-                numdata_inital_design=100) # [sic]
+                numdata_initial_design=100)
 
     gpyopt.run_optimization(max_iter)
