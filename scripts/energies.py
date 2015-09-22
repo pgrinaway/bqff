@@ -235,7 +235,7 @@ def compute_hydration_energy_allmodel(entry, parameters, platform_name="CPU"):
     try:
         df_ij, ddf_ij, _ = mbar.getFreeEnergyDifferences()
     except linalg.LinAlgError:
-        return np.inf
+        return 500.0
 
     DeltaG_in_kT = df_ij[1,2]
     dDeltaG_in_kT = ddf_ij[1,2]
@@ -253,7 +253,7 @@ def compute_hydration_energy_allmodel(entry, parameters, platform_name="CPU"):
     #print "%48s | %48s | DeltaG = %.3f +- %.3f kT " % (cid, iupac_name, energy, dDeltaG_in_kT)
 
 
-    return energy.in_units_of(units.kilocalories_per_mole)
+    return energy.in_units_of(units.kilocalories_per_mole) / units.kilocalories_per_mole
 
 
 
