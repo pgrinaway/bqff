@@ -82,5 +82,4 @@ setup(name='bqff',
         'openmm', 
         'numpy',
         'scipy',
-        'pymbar'
         ])
