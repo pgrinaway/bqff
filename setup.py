@@ -65,7 +65,7 @@ Programming Language :: Python :: 3.4
 
 extensions = []
 
-setup(name='perses',
+setup(name='bqff',
       author='Patrick Grinaway',
       author_email='patrick.grinaway@choderalab.org',
       description=DOCLINES[0],
