@@ -3,7 +3,7 @@
 __author__ = 'Patrick B. Grinaway'
 
 import scipy.stats as stats
-import energies
+from bqff.hydration_energies import energies
 
 class GBFFmodel(object):
     """

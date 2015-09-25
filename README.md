@@ -1,2 +1,2 @@
 # bqff
-Bayesian quadrature and optimization with forcefields
+Bayesian quadrature and optimization with forcefields. 

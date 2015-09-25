@@ -1,0 +1,36 @@
+package:
+  name: bqff-dev
+  version: !!str 0.0.0
+
+source:
+  path: ../../
+
+build:
+  preserve_egg_dir: True
+  number: 0
+
+requirements:
+  build:
+    - python
+    - openmm
+    - numpy
+    - scipy
+
+  run:
+    - python
+    - openmm
+    - numpy
+    - scipy
+    - pymbar
+
+test:
+  requires:
+    - nose
+  imports:
+    - bqff
+  commands:
+    - nosetests bqff --nocapture --verbosity=2 --with-doctest
+
+about:
+  home: https://github.com/choderalab/perses
+  license: GNU Lesser General Public License v2 or later (LGPLv2+)

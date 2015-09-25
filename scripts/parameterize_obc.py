@@ -1,3 +1,4 @@
+from bqff.models import model
 __author__ = 'Patrick B. Grinaway'
 
 """
@@ -6,10 +7,6 @@ This script will use Bayesian optimization to parameterize an OBC forcefield. Op
 
 import GPy
 import GPyOpt
-
-import simtk.openmm as openmm
-import simtk.openmm.app as app
-import simtk.unit as units
 
 import numpy as np
 import yaml
@@ -147,7 +144,6 @@ def gpy_f_factory(model):
 
 if __name__ == "__main__":
     import os
-    import model
 
     #read in configurations
     yamlfile = open('configs.yaml','r')
