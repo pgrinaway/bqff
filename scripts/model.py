@@ -15,10 +15,13 @@ class GBFFmodel(object):
         A prepared FreeSolv database
     """
 
-    def __init__(self, prepared_database, initial_parameters):
+    def __init__(self, prepared_database, initial_parameter_dict):
         self._database = prepared_database
-        self._initial_parameters = initial_parameters
-
+        self._set_bounds()
+        self._initial_parameters = initial_parameter_dict
+        self._parameter_names = sorted(initial_parameter_dict.keys())
+        self._parameter_bounds = self._get_parameter_bounds()
+        self._num_params = len(self._parameter_names)
 
     def ln_prior(self, parameters):
         """
@@ -26,13 +29,12 @@ class GBFFmodel(object):
         """
         lnprior = 0.0
         for (key, value) in parameters.iteritems():
-            parmtype = key.split("_")[1]
-            if parmtype == 'radius':
-                lnprior += stats.distributions.uniform.logpdf(value, 0.5, 2.5)
-            elif parmtype == 'scalingFactor':
-                lnprior += stats.distributions.uniform.logpdf(value, -0.8, 2.3)
-            elif parmtype == 'sigma':
+            parm_type = key.split("_")[1]
+            lb,rb = self.bounds_dict[parm_type]
+            lnprior += stats.distributions.uniform.logpdf(value, lb, rb-lb)
+            if parm_type=='sigma':
                 lnprior += stats.distributions.invgamma.logpdf(value,1.0,1.0)
+
         return lnprior
 
 
@@ -74,3 +76,74 @@ class GBFFmodel(object):
             ln_like += stats.distributions.norm.logpdf(dg_gbsa, dg_exp, normal_sigma)
 
         return ln_like
+
+    def ln_posterior(self,parameter_dict,verbose=True):
+        ln_prior = self.ln_prior(parameter_dict)
+        ln_likelihood = self.ln_likelihood(parameter_dict,verbose)
+        ln_posterior = ln_prior+ln_likelihood
+
+        if verbose:
+            print("The log prior is {0:.3f}".format(ln_prior))
+            print("The log likelihood is {0:.3f}".format(ln_likelihood))
+            print("The log unnormalized posterior is {0:.3f}".format(ln_posterior))
+
+        return ln_posterior
+
+    def _set_bounds(self):
+        ''' Associate each parameter type with a tuple (left_bound,right_bound)'''
+        self.bounds_dict = dict()
+        self.bounds_dict['radius'] = (0.5, 3.0)
+        self.bounds_dict['scalingFactor'] = (-0.8, 1.5)
+        self.bounds_dict['sigma'] = (0, 1000)
+
+    def _get_parameter_bounds(self):
+        """
+        Gets a list of parameter bounds (alphabetical) from the parameter names
+
+        Arguments
+        ---------
+        list_of_parameter_names : list of string
+           names of parameters
+
+        Returns
+        -------
+        bounds : list of tuples
+            Bounds for the parameters of interest,
+        """
+
+        bounds = []
+
+        for name in self._parameter_names:
+            parm_type = name.split('_')[1]
+            if parm_type in self.bounds_dict:
+                bounds.append(self.bounds_dict[parm_type])
+            else:
+                raise ValueError('Not a recognized parameter type. Must be one of' + self.bounds_dict.keys())
+        return bounds
+
+    def _parse_params(self,param_vector):
+        """
+        Convert the param_vector to a dictionary for the model
+
+        Arguments
+        ---------
+        param_vector : array-like of floats, shape=(n,) or (n,1) where n=self._num_params
+
+        Returns
+        -------
+        parameter_dict_list : dict
+            A dictionary of the format {parameter_name : parameter_value}
+
+        """
+        assert(len(param_vector)==self._num_params)
+        parameter_dict = dict()
+
+        for (i, val) in enumerate(param_vector):
+            parameter_dict[self._parameter_names[i]] = val
+        return parameter_dict
+
+    def callable_lnpostfn(self,param_vector,verbose=False):
+        ''' convenience function that accepts a parameter vector instead of a
+        parameter dictionary'''
+        parameter_dict = self._parse_params(param_vector)
+        return self.ln_posterior(parameter_dict,verbose)
