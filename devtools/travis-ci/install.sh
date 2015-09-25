@@ -12,8 +12,9 @@ bash $MINICONDA -b
 
 # Configure miniconda
 export PATH=$HOME/miniconda/bin:$PATH
-conda install --yes conda-build jinja2 conda-server pip
+conda install --yes conda-build jinja2 conda-server pip numpy scipy
 conda config --add channels http://conda.binstar.org/omnia
+pip install pydoe
 git clone https://github.com/SheffieldML/GPy.git
 cd GPy
 python setup.py install
