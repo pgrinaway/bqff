@@ -6,13 +6,14 @@ as implemented in emcee.
 
 __author__='Josh Fass'
 
-import numpy as np
-import yaml
 import pickle
 
-from model import GBFFmodel
-
+import numpy as np
+import yaml
 import emcee
+
+from bqff.models.model import GBFFmodel
+
 
 if __name__=='__main__':
     ## setup stuff is mostly copied from parameterize_obc
