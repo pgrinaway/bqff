@@ -80,8 +80,7 @@ setup(name='bqff',
       ext_modules=extensions,
       install_requires=[
         'openmm', 
-	    'numpy',
+        'numpy',
         'scipy',
-        'pymbar',
-        'GPyOpt'
+        'pymbar'
         ])
