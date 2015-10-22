@@ -3,7 +3,8 @@
 __author__ = 'Patrick B. Grinaway'
 
 import scipy.stats as stats
-from bqff.hydration_energies import energies
+import numpy as np
+from hydration_energies import energies
 
 class GBFFmodel(object):
     """
@@ -22,6 +23,7 @@ class GBFFmodel(object):
         self._parameter_names = sorted(initial_parameter_dict.keys())
         self._parameter_bounds = self._get_parameter_bounds()
         self._num_params = len(self._parameter_names)
+
 
     def ln_prior(self, parameters):
         """
@@ -55,7 +57,7 @@ class GBFFmodel(object):
         ln_like = 0.0
 
         #calculate free energies--returns a dictionary of {cid : DeltaG}
-        delta_g = energies.compute_hydration_energies_sequentially(self._database, parameters)
+        delta_g = energies.compute_hydration_energies_celery(self._database, parameters, platform_name='OpenCL')
 
         #iterate through and add each molecule's contribution to the loglikelihood
         for cid in delta_g.iterkeys():
@@ -79,6 +81,8 @@ class GBFFmodel(object):
 
     def ln_posterior(self,parameter_dict,verbose=True):
         ln_prior = self.ln_prior(parameter_dict)
+        if ln_prior == -np.inf:
+            return -np.inf
         ln_likelihood = self.ln_likelihood(parameter_dict,verbose)
         ln_posterior = ln_prior+ln_likelihood
 

@@ -12,13 +12,11 @@ import numpy as np
 import yaml
 import emcee
 
-from bqff.models.model import GBFFmodel
-
 
 if __name__=='__main__':
     ## setup stuff is mostly copied from parameterize_obc
     import os
-    from parameterize_obc import read_gbsa_parameters
+    import bqff.models as model
 
     #read in configurations
     yamlfile = open('configs.yaml','r')
@@ -51,15 +49,15 @@ if __name__=='__main__':
     database = dict((k, database[k]) for k in mols_to_use)
 
     #instantiate the model
-    model = GBFFmodel(database, parameters)
+    modelobj = model.GBFFmodel(database, parameters)
 
     ## instantiate the sampler
-    dim = model._num_params
+    dim = modelobj._num_params
     nwalkers = dim*2
-    lnpostfn=lambda theta:model.callable_lnpostfn(theta,verbose=True)
+    lnpostfn=lambda theta:modelobj.callable_lnpostfn(theta,verbose=True)
 
     sampler = emcee.EnsembleSampler(nwalkers=nwalkers,dim=dim,lnpostfn=lnpostfn)
-    bounds = np.array(model._parameter_bounds)
+    bounds = np.array(modelobj._parameter_bounds)
     print(bounds.shape)
     left_bounds,right_bounds = bounds[:,0],bounds[:,1]
     scale=right_bounds-left_bounds

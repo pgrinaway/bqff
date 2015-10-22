@@ -1,4 +1,5 @@
 from bqff.models import model
+
 __author__ = 'Patrick B. Grinaway'
 
 """
