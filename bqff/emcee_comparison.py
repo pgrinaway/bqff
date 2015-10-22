@@ -117,4 +117,11 @@ if __name__=='__main__':
     p0=[np.array(p1)+np.random.rand(dim)*scale/10 for _ in range(nwalkers)]
     #p0=[(np.random.rand(dim)*scale)+left_bounds for _ in range(nwalkers)]
 
-    sampler.run_mcmc(p0,100)
+    sample_trace = open('/cbio/jclab/projects/pgrinaway/gbff_aies/bqff/bqff/samples.dat','w')
+    sample_trace.close()
+    for result in sampler.sample(p0, iterations=50000, storechain=False):
+        position = result[0]
+        f = open("/cbio/jclab/projects/pgrinaway/gbff_aies/bqff/bqff/samples.dat", "a")
+        for k in range(position.shape[0]):
+            f.write("{0:d} {1:s}\n".format(k, " ".join(position[k])))
+        f.close()
